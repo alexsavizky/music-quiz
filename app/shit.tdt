@@ -1,0 +1,73 @@
+import os
+import random
+from flask import Flask, session, url_for, redirect, render_template, request, jsonify
+from spotipy import Spotify
+from spotipy.oauth2 import SpotifyOAuth
+from spotipy.cache_handler import FlaskSessionCacheHandler
+from dotenv import load_dotenv
+from spotify.spotify_service import SpotifyService
+from game.game_maneger import MusicQuiz
+load_dotenv()
+app = Flask(__name__)
+app.config["SECRET_KEY"] = os.urandom(64)  # Required for sessions
+
+
+cache_handler = FlaskSessionCacheHandler(session)
+
+
+sp = SpotifyService(cache_handler)
+mq = MusicQuiz(sp)
+
+# --- ROUTES ---
+@app.route("/")
+def index():
+    """Home page: check if logged in, otherwise redirect to login."""
+    if not sp.auth_manager.validate_token(cache_handler.get_cached_token()):
+        auth_url = sp.auth_manager.get_authorize_url()
+        return redirect(auth_url)
+    return redirect(url_for("game"))
+
+
+@app.route("/callback")
+def callback():
+    """Spotify redirects here after user logs in."""
+    sp.auth_manager.get_access_token(request.args.get("code"))
+    return redirect(url_for("game"))
+
+
+@app.route("/game")
+def game():
+    
+    # We pass the access token directly so the JavaScript SDK can use it
+    token_info = cache_handler.get_cached_token()
+    res = mq.name_that_tune_by_artist(sp.get_artist_by_rank(1))
+    return render_template(
+        "game.html",
+        question=res["question"],
+        correct_name=res["correct_name"],
+        track_uri=res["track_uri"],
+        options=res["options"],
+        token=token_info["access_token"],
+    )
+
+
+@app.route("/play/<device_id>/<track_uri>")
+def play(device_id, track_uri):
+    """API endpoint called by JS to trigger the music."""
+    try:
+        sp.sp.start_playback(device_id=device_id, uris=[track_uri])
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+
+
+@app.route("/transfer/<device_id>")
+def transfer_playback(device_id):
+    # This officially moves the "Active" status to your browser
+    # play=True ensures it starts immediately if something was already playing
+    sp.sp.transfer_playback(device_id=device_id, force_play=True)
+    return jsonify({"status": "transferred"})
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=8000)
