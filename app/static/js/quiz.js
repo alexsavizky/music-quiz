@@ -5,6 +5,10 @@ let quizData = null;
 let currentRoundIndex = 0;
 let lives = 2;
 
+// --- NEW: Grab settings from URL (Sent by lobby.js) ---
+const urlParams = new URLSearchParams(window.location.search);
+const gameType = urlParams.get("type") || "name_that_tune";
+
 const gameContainer = document.getElementById("game-container");
 const TOKEN = gameContainer.dataset.token;
 
@@ -27,17 +31,25 @@ window.onSpotifyWebPlaybackSDKReady = () => {
   spotifyPlayer.connect();
 };
 
-// --- 2. FETCH QUIZ PACKAGE ---
+// --- 2. FETCH DYNAMIC QUIZ PACKAGE ---
 async function fetchQuiz() {
-  const response = await fetch("/api/get-quiz-package");
+  // We append the current URL's search params (limit, diff, mode, etc.)
+  // to the API call so the backend knows what to generate.
+  const response = await fetch(`/api/get-quiz-package?${urlParams.toString()}`);
   quizData = await response.json();
 }
 
 // --- 3. GAME LOOP LOGIC ---
 async function startGame() {
   await fetchQuiz();
-  await spotifyPlayer.activateElement();
 
+  if (!quizData || quizData.rounds.length === 0) {
+    alert("Could not generate quiz. Try a different artist or settings.");
+    window.location.href = "/";
+    return;
+  }
+
+  await spotifyPlayer.activateElement();
   document.getElementById("start-overlay").style.display = "none";
   document.getElementById("game-hud").classList.remove("hidden");
 
@@ -47,12 +59,14 @@ async function startGame() {
 
 function loadRound() {
   const round = quizData.rounds[currentRoundIndex];
+  const totalRounds = quizData.rounds.length;
 
-  // Update UI
+  // Update UI Dynamically
   document.getElementById("question-text").innerText = round.question;
   document.getElementById("round-display").innerText =
-    `Round ${currentRoundIndex + 1}/5`;
+    `Round ${currentRoundIndex + 1}/${totalRounds}`;
   document.getElementById("music-icon").classList.add("animate-bounce");
+  updateLivesUI();
 
   // Clear and build buttons
   const container = document.getElementById("options-container");
@@ -90,7 +104,7 @@ function handleAnswer(selectedBtn, choice, correctAnswer) {
   setTimeout(() => {
     if (lives <= 0) {
       endGame(false);
-    } else if (currentRoundIndex >= 4) {
+    } else if (currentRoundIndex >= quizData.rounds.length - 1) {
       endGame(true);
     } else {
       currentRoundIndex++;
@@ -100,7 +114,9 @@ function handleAnswer(selectedBtn, choice, correctAnswer) {
 }
 
 function updateLivesUI() {
-  document.getElementById("lives-display").innerText = "❤️".repeat(lives);
+  document.getElementById("lives-display").innerText = "❤️".repeat(
+    Math.max(0, lives),
+  );
 }
 
 function endGame(win) {
@@ -112,19 +128,20 @@ function endGame(win) {
     ? "🏆 WINNER!"
     : "💀 GAME OVER";
   document.getElementById("overlay-msg").innerText = win
-    ? "You named all 5 songs!"
-    : "Better luck next time.";
+    ? `Impressive! You finished all ${quizData.rounds.length} rounds.`
+    : "You ran out of lives!";
 
-  // Change button to return home instead of just reloading
   const btn = document.getElementById("start-btn");
   btn.innerText = "RETURN TO MENU";
-  btn.classList.replace("bg-green-500", "bg-white"); // Optional style change
+  btn.classList.replace("bg-green-500", "bg-white");
+  btn.classList.replace("text-white", "text-black");
 
   btn.onclick = () => {
-    window.location.href = "/"; // This takes the user back to the menu
+    window.location.href = "/";
   };
 }
-// --- 4. VOLUME CONTROL ---
+
+// Volume & Start Listeners
 document.getElementById("volume-control").addEventListener("input", (e) => {
   if (spotifyPlayer) spotifyPlayer.setVolume(e.target.value / 100);
 });

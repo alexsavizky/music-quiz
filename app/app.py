@@ -55,14 +55,27 @@ def game_page():
 
 @app.route("/api/get-quiz-package")
 def get_quiz_package():
-    """The single endpoint that delivers all 5 rounds at once."""
-    # Generate the 5 questions
-    package = mq.generate_full_quiz()
+    # Read params from the JS fetch call
+    limit = int(request.args.get("limit", 5))
+    difficulty = request.args.get("diff", "mid")
+    mode = request.args.get("mode", "collection")
+    artist_name = request.args.get("artist", None)
+    try:
+        pool_size = int(request.args.get("pool_size", 0))
+    except (ValueError, TypeError):
+        pool_size = 0
 
-    # We return this as JSON for the JS to store in memory
-    return jsonify(
-        {"rounds": package, "total_rounds": len(package), "initial_lives": 2}
+    # Generate the package using your MusicQuiz class
+    # You will need to update your MusicQuiz methods to handle these variables!
+    package = mq.generate_name_that_tune_quiz(
+        limit=limit,
+        difficulty=difficulty,
+        mode=mode,
+        artist_name=artist_name,
+        pool_size=pool_size,
     )
+
+    return jsonify({"rounds": package})
 
 
 @app.route("/play/<device_id>/<track_uri>/<int:start_ms>")
@@ -96,6 +109,24 @@ def profile():
     }
 
     return render_template("profile.html", user=user_info, stats=stats)
+
+
+@app.route("/lobby/<game_type>")
+def lobby(game_type):
+    token_info = cache_handler.get_cached_token()
+    if not token_info:
+        return redirect(url_for("index"))
+
+    # Define metadata for the lobby based on game type
+    game_titles = {
+        "name_that_tune": "Name That Tune",
+        "artist_guesser": "Who's the Artist?",
+        "album_master": "Album Art Challenge",
+    }
+
+    title = game_titles.get(game_type, "New Challenge")
+
+    return render_template("lobby.html", game_type=game_type, title=title)
 
 
 @app.route("/logout")

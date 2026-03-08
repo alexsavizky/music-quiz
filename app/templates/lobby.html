@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Configure Your Game - SpotiQuiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body
+    class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-6"
+  >
+    <div
+      class="bg-gray-800 rounded-3xl p-10 max-w-xl w-full border border-gray-700 shadow-2xl"
+    >
+      <header class="mb-10">
+        <a
+          href="/"
+          class="text-green-500 hover:underline text-sm font-bold uppercase tracking-widest"
+          >← Back to Menu</a
+        >
+        <h1 class="text-4xl font-black mt-4 uppercase">{{ title }}</h1>
+        <p class="text-gray-400">Configure your match settings below.</p>
+      </header>
+
+      <div class="space-y-8">
+        <div>
+          <label
+            class="flex justify-between text-sm font-bold text-gray-400 uppercase mb-3"
+          >
+            Round Count
+            <span id="count-display" class="text-green-500">10 Songs</span>
+          </label>
+          <input
+            type="range"
+            id="limit"
+            min="5"
+            max="20"
+            step="1"
+            value="10"
+            class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-green-500"
+            oninput="
+              document.getElementById('count-display').innerText =
+                this.value + ' Songs'
+            "
+          />
+        </div>
+
+        <div>
+          <label class="text-sm font-bold text-gray-400 uppercase mb-3 block"
+            >Difficulty Level</label
+          >
+          <div class="flex space-x-3">
+            <button
+              onclick="selectDiff(this, 'easy')"
+              class="diff-btn flex-1 py-3 rounded-xl bg-gray-700 font-bold border-2 border-transparent transition hover:bg-gray-600"
+            >
+              Easy
+            </button>
+            <button
+              onclick="selectDiff(this, 'mid')"
+              class="diff-btn flex-1 py-3 rounded-xl bg-green-500 text-black font-bold border-2 border-transparent transition"
+            >
+              Mid
+            </button>
+            <button
+              onclick="selectDiff(this, 'hard')"
+              class="diff-btn flex-1 py-3 rounded-xl bg-gray-700 font-bold border-2 border-transparent transition hover:bg-gray-600"
+            >
+              Hard
+            </button>
+          </div>
+
+          <!-- <div>
+          <label class="text-sm font-bold text-gray-400 uppercase mb-3 block"
+            >Artist Selection</label
+          >
+          <select
+            id="pool"
+            class="w-full bg-gray-700 p-4 rounded-xl border border-gray-600 focus:border-green-500 outline-none font-semibold"
+          >
+            <option value="top_50">My Top 50 Artists</option>
+            <option value="must_listen">Global Must-Listen (100)</option>
+            <option value="genre_hits">Current Genre Hits</option>
+          </select>
+        </div> -->
+        </div>
+        <div class="space-y-4">
+          <label
+            class="text-sm font-bold text-gray-400 uppercase tracking-widest"
+            >Artist Selection Mode</label
+          >
+          <div class="flex bg-gray-900 p-1 rounded-xl border border-gray-700">
+            <button
+              onclick="toggleArtistMode('single')"
+              id="btn-single"
+              class="mode-btn flex-1 py-2 rounded-lg font-bold transition-all bg-green-500 text-black"
+            >
+              Single Artist
+            </button>
+            <button
+              onclick="toggleArtistMode('collection')"
+              id="btn-collection"
+              class="mode-btn flex-1 py-2 rounded-lg font-bold transition-all text-gray-400"
+            >
+              Artist Collection
+            </button>
+          </div>
+
+          <div id="section-single" class="animate-in fade-in duration-300">
+            <label class="text-xs font-bold text-gray-500 uppercase mb-2 block"
+              >Enter Artist Name</label
+            >
+            <input
+              type="text"
+              id="artist-query"
+              placeholder="e.g. Queen, Drake, Tame Impala..."
+              class="w-full bg-gray-700 p-4 rounded-xl border border-gray-600 focus:border-green-500 outline-none text-white placeholder-gray-500"
+            />
+          </div>
+
+          <div
+            id="section-collection"
+            class="hidden animate-in fade-in duration-300"
+          >
+            <label
+              class="flex justify-between text-xs font-bold text-gray-500 uppercase mb-2"
+            >
+              Top Artists to include:
+              <span id="collection-val" class="text-green-500">25</span>
+            </label>
+            <input
+              type="range"
+              id="collection-limit"
+              min="5"
+              max="100"
+              step="5"
+              value="25"
+              class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-green-500"
+              oninput="
+                document.getElementById('collection-val').innerText = this.value
+              "
+            />
+            <p class="text-[10px] text-gray-500 mt-2 italic">
+              *Includes your top "Must-Listen" artists based on rank.
+            </p>
+          </div>
+        </div>
+      </div>
+      <button
+        onclick="launch()"
+        class="w-full mt-12 bg-green-500 hover:bg-green-400 text-black font-black py-5 rounded-2xl text-xl transition-transform active:scale-95 shadow-lg shadow-green-900/20"
+      >
+        START QUIZ
+      </button>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/lobby.js') }}"></script>
+  </body>
+</html>

@@ -52,3 +52,22 @@ class SpotifyService:
         # This tells your ACTIVE Spotify device to start playing this track
         sp.start_playback(uris=[track_uri])
         print("Song started on your Spotify device!")
+
+    def artist_albums(self, artist_id, album_type="album", limit=10):
+        # This calls the actual spotipy client (self.sp)
+        return self.sp.artist_albums(artist_id, album_type=album_type, limit=limit)
+
+    def album_tracks(self, album_id):
+        # This calls the actual spotipy client to get songs from a specific album
+        return self.sp.album_tracks(album_id)
+
+    def get_artist_id_by_name(self, name):
+        # Search for the artist
+        results = self.sp.search(q=f"artist:{name}", type="artist", limit=1)
+        items = results.get("artists", {}).get("items", [])
+
+        if not items:
+            return None
+
+        # Return the ID of the first (most relevant) result
+        return items[0]["id"]
