@@ -29,6 +29,7 @@ class MusicQuiz:
         mode="collection",
         artist_name=None,
         pool_size=0,
+        artist_id=0,
     ):
         """Generates a quiz package based on the specified parameters."""
         quiz_package = []
@@ -37,10 +38,8 @@ class MusicQuiz:
         for i in range(1, limit + 1):
             try:
                 if artist_name:
-                    id = self.api.get_artist_id_by_name(artist_name)
-
                     question_data = self.name_that_tune_by_artist(
-                        {"name": artist_name, "id": id}, True, True
+                        {"name": artist_name, "id": artist_id}, True, True
                     )
                 else:
                     artist = self.api.get_artist_by_rank(

@@ -105,16 +105,24 @@
             </button>
           </div>
 
-          <div id="section-single" class="animate-in fade-in duration-300">
+          <div id="section-single" class="relative">
             <label class="text-xs font-bold text-gray-500 uppercase mb-2 block"
               >Enter Artist Name</label
             >
             <input
               type="text"
               id="artist-query"
-              placeholder="e.g. Queen, Drake, Tame Impala..."
-              class="w-full bg-gray-700 p-4 rounded-xl border border-gray-600 focus:border-green-500 outline-none text-white placeholder-gray-500"
+              autocomplete="off"
+              placeholder="Search for an artist..."
+              class="w-full bg-gray-700 p-4 rounded-xl border border-gray-600 focus:border-green-500 outline-none text-white"
             />
+
+            <div
+              id="search-results"
+              class="absolute z-50 w-full mt-2 bg-gray-800 border border-gray-700 rounded-xl hidden overflow-hidden shadow-2xl"
+            ></div>
+
+            <input type="hidden" id="selected-artist-id" />
           </div>
 
           <div

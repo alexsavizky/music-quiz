@@ -38,12 +38,16 @@ function launch() {
 
   let artistParam = "";
   if (artistMode === "single") {
-    const query = document.getElementById("artist-query").value;
+    const query = searchInput.value;
+    const artistId = idInput.value; // Grab the ID we saved
+
     if (!query) {
-      alert("Please enter an artist name!");
+      alert("Please select an artist!");
       return;
     }
-    artistParam = `&artist=${encodeURIComponent(query)}&mode=single`;
+
+    // Pass both name and ID for maximum reliability
+    artistParam = `&artist=${encodeURIComponent(query)}&artist_id=${artistId}&mode=single`;
   } else {
     const count = document.getElementById("collection-limit").value;
     artistParam = `&pool_size=${count}&mode=collection`;
@@ -51,4 +55,48 @@ function launch() {
 
   const url = `/game?type={{ game_type }}&limit=${roundLimit}&diff=${difficulty}${artistParam}`;
   window.location.href = url;
+}
+let debounceTimer;
+const searchInput = document.getElementById("artist-query");
+const resultsDiv = document.getElementById("search-results");
+const idInput = document.getElementById("selected-artist-id");
+
+searchInput.addEventListener("input", (e) => {
+  clearTimeout(debounceTimer);
+  const query = e.target.value;
+
+  if (query.length < 2) {
+    resultsDiv.classList.add("hidden");
+    return;
+  }
+
+  debounceTimer = setTimeout(async () => {
+    const response = await fetch(
+      `/api/search-artist?q=${encodeURIComponent(query)}`,
+    );
+    const artists = await response.json();
+
+    if (artists.length > 0) {
+      resultsDiv.innerHTML = artists
+        .map(
+          (a) => `
+                <div class="flex items-center p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0" 
+                     onclick="selectArtist('${a.name}', '${a.id}')">
+                    <img src="${a.image}" class="w-10 h-10 rounded-full mr-3 object-cover">
+                    <span class="font-bold">${a.name}</span>
+                </div>
+            `,
+        )
+        .join("");
+      resultsDiv.classList.remove("hidden");
+    } else {
+      resultsDiv.classList.add("hidden");
+    }
+  }, 300); // Wait 300ms after user stops typing
+});
+
+function selectArtist(name, id) {
+  searchInput.value = name;
+  idInput.value = id;
+  resultsDiv.classList.add("hidden");
 }

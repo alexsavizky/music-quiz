@@ -60,6 +60,7 @@ def get_quiz_package():
     difficulty = request.args.get("diff", "mid")
     mode = request.args.get("mode", "collection")
     artist_name = request.args.get("artist", None)
+    artist_id = request.args.get("artist_id", None)
     try:
         pool_size = int(request.args.get("pool_size", 0))
     except (ValueError, TypeError):
@@ -73,6 +74,7 @@ def get_quiz_package():
         mode=mode,
         artist_name=artist_name,
         pool_size=pool_size,
+        artist_id=artist_id,
     )
 
     return jsonify({"rounds": package})
@@ -137,6 +139,33 @@ def logout():
     if os.path.exists(".cache"):
         os.remove(".cache")
     return redirect(url_for("index"))
+
+
+@app.route("/api/search-artist")
+def search_artist():
+    query = request.args.get("q", "")
+    if not query or len(query) < 2:
+        return jsonify([])
+
+    # Search for artists only
+    results = sp.sp.search(q=f"artist:{query}", type="artist", limit=5)
+    artists = results.get("artists", {}).get("items", [])
+
+    suggestions = []
+    for a in artists:
+        suggestions.append(
+            {
+                "id": a["id"],
+                "name": a["name"],
+                "image": (
+                    a["images"][-1]["url"]
+                    if a["images"]
+                    else "https://via.placeholder.com/50"
+                ),
+            }
+        )
+
+    return jsonify(suggestions)
 
 
 if __name__ == "__main__":
