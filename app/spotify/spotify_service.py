@@ -41,7 +41,8 @@ class SpotifyService:
             {
                 "name": t["name"],
                 "album": t["album"]["name"],
-                "duration_ms": t["album"]["release_date"],
+                "duration_ms": t["duration_ms"],
+                "release_date": t["album"]["release_date"],
                 "uri": t["uri"],
             }
             for t in results["tracks"]["items"]

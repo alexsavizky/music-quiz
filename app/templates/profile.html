@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>My Profile - SpotiQuiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-900 text-white min-h-screen p-6">
+    <div class="max-w-4xl mx-auto">
+      <a
+        href="/"
+        class="text-green-500 hover:text-green-400 mb-8 inline-block font-bold"
+        >← Back to Menu</a
+      >
+
+      <h1 class="text-4xl font-black mb-10">Account Settings</h1>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div
+          class="bg-gray-800 p-8 rounded-2xl shadow-xl flex flex-col items-center"
+        >
+          <img
+            src="{{ user.images[0].url if user.images else 'https://via.placeholder.com/150' }}"
+            class="w-32 h-32 rounded-full border-4 border-green-500 mb-6 shadow-2xl"
+          />
+
+          <h2 class="text-2xl font-bold">{{ user.display_name }}</h2>
+          <p class="text-gray-400 mb-6">{{ user.email }}</p>
+
+          <a
+            href="/logout"
+            class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-full font-bold transition"
+          >
+            Sign Out
+          </a>
+        </div>
+
+        <div
+          class="bg-gray-800 p-8 rounded-2xl shadow-xl border-t-4 border-yellow-500"
+        >
+          <h3
+            class="text-xl font-black mb-4 uppercase tracking-widest text-yellow-500"
+          >
+            Subscription
+          </h3>
+          <div class="space-y-4">
+            <div class="flex justify-between border-b border-gray-700 pb-2">
+              <span class="text-gray-400">Status</span>
+              <span class="font-bold text-green-400"
+                >{{ user.product.upper() }}</span
+              >
+            </div>
+            <div class="flex justify-between border-b border-gray-700 pb-2">
+              <span class="text-gray-400">Country</span>
+              <span>{{ user.country }}</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-4 italic">
+              Subscription details are managed via your Spotify Account
+              settings.
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="bg-gray-800 p-8 rounded-2xl shadow-xl md:col-span-2 border-t-4 border-blue-500"
+        >
+          <h3
+            class="text-xl font-black mb-6 uppercase tracking-widest text-blue-500"
+          >
+            Game Statistics
+          </h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div class="p-4 bg-gray-700 rounded-xl">
+              <p class="text-3xl font-black">{{ stats.games_played }}</p>
+              <p class="text-xs text-gray-400 uppercase">Games</p>
+            </div>
+            <div class="p-4 bg-gray-700 rounded-xl">
+              <p class="text-3xl font-black text-green-400">
+                {{ stats.win_rate }}
+              </p>
+              <p class="text-xs text-gray-400 uppercase">Win Rate</p>
+            </div>
+            <div class="p-4 bg-gray-700 rounded-xl">
+              <p class="text-3xl font-black text-blue-400">
+                {{ stats.avg_score }}
+              </p>
+              <p class="text-xs text-gray-400 uppercase">Avg Score</p>
+            </div>
+            <div class="p-4 bg-gray-700 rounded-xl">
+              <p class="text-3xl font-black text-purple-400">
+                {{ stats.top_genre }}
+              </p>
+              <p class="text-xs text-gray-400 uppercase">Top Genre</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

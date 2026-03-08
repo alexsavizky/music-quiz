@@ -23,18 +23,27 @@ mq = MusicQuiz(sp)
 # --- ROUTES ---
 @app.route("/")
 def index():
-    """Home page: check if logged in, otherwise redirect to login."""
+    """Main Menu: Shows profile and quiz selection."""
     if not sp.auth_manager.validate_token(cache_handler.get_cached_token()):
         auth_url = sp.auth_manager.get_authorize_url()
         return redirect(auth_url)
-    return redirect(url_for("game"))
+
+    # Fetch User Profile Info
+    user_info = sp.sp.current_user()
+    user_name = user_info.get("display_name", "Music Explorer")
+
+    # Get profile image if it exists, else use a placeholder
+    images = user_info.get("images", [])
+    user_img = images[0]["url"] if images else "https://via.placeholder.com/150"
+
+    return render_template("index.html", user_name=user_name, user_img=user_img)
 
 
 @app.route("/callback")
 def callback():
     """Spotify redirects here after user logs in."""
     sp.auth_manager.get_access_token(request.args.get("code"))
-    return redirect(url_for("game_page"))
+    return redirect(url_for("index"))
 
 
 @app.route("/game")
@@ -56,34 +65,11 @@ def get_quiz_package():
     )
 
 
-@app.route("/api/next")
-def next_round():
-    mq.current_round += 1
-    if mq.is_game_over():
-        return jsonify({"game_over": True, "win": mq.lives > 0, "score": mq.score})
-
-    res = mq.get_next_question()
-    return jsonify(
-        {
-            "game_over": False,
-            "question": res["question"],
-            "correct_name": res["correct_name"],
-            "track_uri": res["track_uri"],
-            "options": res["options"],
-            "round": mq.current_round,
-            "lives": mq.lives,
-        }
-    )
-
-
-@app.route("/play/<device_id>/<track_uri>")
-def play(device_id, track_uri):
-    """API endpoint called by JS to trigger the music."""
-    try:
-        sp.sp.start_playback(device_id=device_id, uris=[track_uri])
-        return jsonify({"status": "success"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 400
+@app.route("/play/<device_id>/<track_uri>/<int:start_ms>")
+def play(device_id, track_uri, start_ms):
+    # The 'position_ms' argument tells Spotify where to jump
+    sp.sp.start_playback(device_id=device_id, uris=[track_uri], position_ms=start_ms)
+    return jsonify({"status": "success"})
 
 
 @app.route("/transfer/<device_id>")
@@ -92,6 +78,34 @@ def transfer_playback(device_id):
     # play=True ensures it starts immediately if something was already playing
     sp.sp.transfer_playback(device_id=device_id, force_play=True)
     return jsonify({"status": "transferred"})
+
+
+@app.route("/profile")
+def profile():
+    if not sp.auth_manager.validate_token(cache_handler.get_cached_token()):
+        return redirect(url_for("index"))
+
+    user_info = sp.sp.current_user()
+
+    # We'll pass dummy stats for now since we haven't built the database yet
+    stats = {
+        "games_played": 12,
+        "win_rate": "75%",
+        "avg_score": "4.2/5",
+        "top_genre": "Pop",
+    }
+
+    return render_template("profile.html", user=user_info, stats=stats)
+
+
+@app.route("/logout")
+def logout():
+    # Clear the session/cache to sign out
+    import os
+
+    if os.path.exists(".cache"):
+        os.remove(".cache")
+    return redirect(url_for("index"))
 
 
 if __name__ == "__main__":

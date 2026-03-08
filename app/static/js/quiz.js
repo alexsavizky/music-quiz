@@ -68,7 +68,7 @@ function loadRound() {
   });
 
   // Play Song
-  fetch(`/play/${playerDeviceID}/${round.track_uri}`);
+  fetch(`/play/${playerDeviceID}/${round.track_uri}/${round.start_at_ms}`);
 }
 
 function handleAnswer(selectedBtn, choice, correctAnswer) {
@@ -107,17 +107,23 @@ function endGame(win) {
   spotifyPlayer.pause();
   const overlay = document.getElementById("start-overlay");
   overlay.style.display = "flex";
+
   document.getElementById("overlay-title").innerText = win
     ? "🏆 WINNER!"
     : "💀 GAME OVER";
   document.getElementById("overlay-msg").innerText = win
     ? "You named all 5 songs!"
     : "Better luck next time.";
-  const btn = document.getElementById("start-btn");
-  btn.innerText = "PLAY AGAIN";
-  btn.onclick = () => location.reload();
-}
 
+  // Change button to return home instead of just reloading
+  const btn = document.getElementById("start-btn");
+  btn.innerText = "RETURN TO MENU";
+  btn.classList.replace("bg-green-500", "bg-white"); // Optional style change
+
+  btn.onclick = () => {
+    window.location.href = "/"; // This takes the user back to the menu
+  };
+}
 // --- 4. VOLUME CONTROL ---
 document.getElementById("volume-control").addEventListener("input", (e) => {
   if (spotifyPlayer) spotifyPlayer.setVolume(e.target.value / 100);
