@@ -168,5 +168,23 @@ def search_artist():
     return jsonify(suggestions)
 
 
+def get_cached_top_artists(self):
+    # Check if we already have the artists in the user's session
+    if "top_artists" in session:
+        print("📊 Using Cached Artists")
+        return session["top_artists"]
+
+    # If not, fetch them ONCE
+    print("🌍 Calling Spotify API: /v1/me/top/artists")
+    results = self.sp.current_user_top_artists(limit=50, time_range="medium_term")
+    artists = results.get("items", [])
+
+    # Store just the necessary info in the session to keep it light
+    simplified_artists = [{"id": a["id"], "name": a["name"]} for a in artists]
+
+    session["top_artists"] = simplified_artists
+    return simplified_artists
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=8000)
